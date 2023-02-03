@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import sys
+import platform
 import getpass
 import time
 import darkdetect
@@ -10,6 +11,47 @@ from PyQt6.QtWidgets import QLabel, QLineEdit, QPushButton, QCheckBox, QTextEdit
     QMainWindow, QApplication, QMessageBox
 import qtawesome as qta
 from qt_material import *
+
+
+class DarkModeSupport:
+    def __init__(self):
+        # 获取当前系统
+        self.system = platform.system()
+        # 支持的系统有：
+        # Windows 10 1607或更高版本
+        # macOS 10.14或更高版本
+        # 带有深色GTK主题的任意Linux发行版
+        if self.system == "Windows":
+            # 获取系统版本
+            self.version = platform.version()
+        elif self.system == "Darwin":
+            # 获取系统版本
+            self.version = platform.mac_ver()[0]
+        elif self.system == "Linux":
+            # 获取系统桌面，支持的桌面有：Gnome 3.36或更高版本、KDE Plasma 5.18或更高版本、Xfce 4.14或更高版本
+            self.desktop = platform.uname().machine
+
+    def check(self):
+        if self.system == "Windows":
+            if self.version >= "10.0.14393":
+                return True
+            else:
+                return False
+        elif self.system == "Darwin":
+            if self.version >= "10.14":
+                return True
+            else:
+                return False
+        elif self.system == "Linux":
+            # 获取GTK主题列表
+            gtk_theme = os.popen("gsettings get org.gnome.desktop.interface gtk-theme").read()
+            # 判断是否存在深色GTK主题
+            if "dark" in gtk_theme.lower() or "darcula" in gtk_theme.lower():
+                return True
+            else:
+                return False
+        else:
+            return False
 
 
 class ChickenYouSoBeautiful(QMainWindow, QtStyleTools):
@@ -56,19 +98,23 @@ class ChickenYouSoBeautiful(QMainWindow, QtStyleTools):
         self.button.setEnabled(False)
         self.h_layout.addWidget(self.button)
         # 新建一个水平布局，放置两个复选框
-        self.h_layout_check_box = QHBoxLayout()
-        self.form_layout.addRow(self.h_layout_check_box)
         # 新建一个单选框，用于选择是否开启文字自动补全
         self.check_box = QCheckBox("开启文字自动补全")
-        self.h_layout_check_box.addWidget(self.check_box)
-        # 新建一个复选框，用于选择是否开启暗黑模式
-        self.check_box_dark = QCheckBox("开启暗黑模式")
-        self.h_layout_check_box.addWidget(self.check_box_dark)
-        # 为复选框添加状态改变事件
-        self.check_box_dark.stateChanged.connect(self.dark_mode)
-        # 判断当前系统是否为暗黑模式
-        if darkdetect.isDark():
-            self.check_box_dark.setChecked(True)
+        support = DarkModeSupport()
+        if support.check():
+            self.h_layout_check_box = QHBoxLayout()
+            self.form_layout.addRow(self.h_layout_check_box)
+            self.h_layout_check_box.addWidget(self.check_box)
+            # 新建一个复选框，用于选择是否开启暗黑模式
+            self.check_box_dark = QCheckBox("开启暗黑模式")
+            self.h_layout_check_box.addWidget(self.check_box_dark)
+            # 为复选框添加状态改变事件
+            self.check_box_dark.stateChanged.connect(self.dark_mode)
+            # 判断当前系统是否为暗黑模式
+            if darkdetect.isDark():
+                self.check_box_dark.setChecked(True)
+        else:
+            self.form_layout.addRow(self.check_box)
         hyperlink_web = '<a href="https://senge.dev">点此访问个人博客</a>'
         hyperlink_bilibili = '<a href="https://space.bilibili.com/151336873">点此访问B站主页</a>'
         hyperlink_video = '<a href="https://www.bilibili.com/video/BV1Q44y1o77h">原视频链接</a>'
@@ -197,9 +243,14 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     # 设置主题
     app.setApplicationName("鸡你太美")
-    # 设置Qt Material主题
-    if darkdetect.isDark():
-        apply_stylesheet(app, theme="dark_cyan.xml")
+    # 判断是否支持深色模式检测
+    support = DarkModeSupport()
+    if support.check():
+        # 设置Qt Material主题
+        if darkdetect.isDark():
+            apply_stylesheet(app, theme="dark_cyan.xml")
+        else:
+            apply_stylesheet(app, theme="light_cyan.xml")
     else:
         apply_stylesheet(app, theme="light_cyan.xml")
     window = ChickenYouSoBeautiful()
