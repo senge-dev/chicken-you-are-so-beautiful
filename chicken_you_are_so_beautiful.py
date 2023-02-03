@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 import sys
 import getpass
 import time
-import random
-from PySide6.QtCore import *
-from PySide6.QtGui import *
-from PySide6.QtWidgets import *
+import darkdetect
+from PyQt6.QtCore import QTimer
+from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QLabel, QLineEdit, QPushButton, QCheckBox, QTextEdit, QFormLayout, QHBoxLayout, QWidget, \
+    QMainWindow, QApplication, QMessageBox
+import qtawesome as qta
+from qt_material import *
 
 
-class ChickenYouSoBeautiful(QMainWindow):
+class ChickenYouSoBeautiful(QMainWindow, QtStyleTools):
     def __init__(self):
         super().__init__()
         # 获取屏幕分辨率
@@ -19,7 +21,7 @@ class ChickenYouSoBeautiful(QMainWindow):
         self.setWindowTitle("鸡你太美")
         self.setFixedSize(x // 2, y // 2)
         # 设置图标
-        self.setWindowIcon(QIcon("img/ikun.ico"))
+        self.setWindowIcon(QIcon("image/ikun.ico"))
         # 设置窗口位置为屏幕中心
         self.move(x // 2 - self.width() // 2, y // 2 - self.height() // 2)
         # 设置窗口置顶
@@ -48,12 +50,25 @@ class ChickenYouSoBeautiful(QMainWindow):
         self.h_layout.addWidget(self.line_edit)
         # 添加一个按钮
         self.button = QPushButton("发送")
+        # 设置按钮图标(使用FontAwesome 4.7.0)
+        self.button.setIcon(qta.icon("fa5s.keyboard"))
         # 禁用按钮
         self.button.setEnabled(False)
         self.h_layout.addWidget(self.button)
+        # 新建一个水平布局，放置两个复选框
+        self.h_layout_check_box = QHBoxLayout()
+        self.form_layout.addRow(self.h_layout_check_box)
         # 新建一个单选框，用于选择是否开启文字自动补全
         self.check_box = QCheckBox("开启文字自动补全")
-        self.form_layout.addRow(self.check_box)
+        self.h_layout_check_box.addWidget(self.check_box)
+        # 新建一个复选框，用于选择是否开启暗黑模式
+        self.check_box_dark = QCheckBox("开启暗黑模式")
+        self.h_layout_check_box.addWidget(self.check_box_dark)
+        # 为复选框添加状态改变事件
+        self.check_box_dark.stateChanged.connect(self.dark_mode)
+        # 判断当前系统是否为暗黑模式
+        if darkdetect.isDark():
+            self.check_box_dark.setChecked(True)
         hyperlink_web = '<a href="https://senge.dev">点此访问个人博客</a>'
         hyperlink_bilibili = '<a href="https://space.bilibili.com/151336873">点此访问B站主页</a>'
         hyperlink_video = '<a href="https://www.bilibili.com/video/BV1Q44y1o77h">原视频链接</a>'
@@ -68,6 +83,15 @@ class ChickenYouSoBeautiful(QMainWindow):
         self.line_edit.textChanged.connect(self.text_changed)
         # 将程序的焦点设置到单行文本框
         self.line_edit.setFocus()
+
+    def dark_mode(self):
+        # 判断复选框是否被选中
+        if self.check_box_dark.isChecked():
+            # 设置程序的样式表
+            self.apply_stylesheet(self, 'dark_cyan.xml')
+        else:
+            # 设置程序的样式表
+            self.apply_stylesheet(self, 'light_cyan.xml')
 
     def text_changed(self):
         # 判断单行文本框的内容是否为空
@@ -126,10 +150,12 @@ class ChickenYouSoBeautiful(QMainWindow):
         message_sequence = self.message_sequence[:length]
         # 将窗口标题改为对方正在输入...
         self.setWindowTitle("对方正在输入...")
+
         # 判断二者是否相等
         if self.user_sequence == message_sequence:
             # 为定时器添加超时事件
-            QTimer.singleShot(random.randint(200, 1500), lambda: self.timer(message_))
+            delay = len(message_) * 200
+            QTimer.singleShot(delay, lambda: self.timer(message_))
             if self.user_sequence == self.message_sequence:
                 # 清除user_sequence中的内容
                 self.user_sequence = []
@@ -153,6 +179,8 @@ class ChickenYouSoBeautiful(QMainWindow):
                     self.line_edit.setFocus()
                     # 弹窗提示
                     QMessageBox.critical(self, "错误", "对接失败！")
+                    # 重新设置窗口标题
+                    self.setWindowTitle("鸡你太美")
 
     def timer(self, message):
         # 将窗口标题改为聊天窗口
@@ -167,6 +195,13 @@ class ChickenYouSoBeautiful(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    # 设置主题
+    app.setApplicationName("鸡你太美")
+    # 设置Qt Material主题
+    if darkdetect.isDark():
+        apply_stylesheet(app, theme="dark_cyan.xml")
+    else:
+        apply_stylesheet(app, theme="light_cyan.xml")
     window = ChickenYouSoBeautiful()
     window.show()
     sys.exit(app.exec())
