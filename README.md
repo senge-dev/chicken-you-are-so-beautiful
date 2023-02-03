@@ -34,11 +34,17 @@
 需要Python3.7或更高版本，支持所有操作系统
 
 ```bash
-pip install pyqt6         # GUI支持
-pip install qtawesome     # FontAwesome支持
-pip install qt_material   # 一个PyQt主题
-pip install darkdetect    # 深色模式检测
+pip install pyqt6                         # GUI支持
+pip install qtawesome                     # FontAwesome支持
+pip install qt_material                   # 一个PyQt主题
+pip install darkdetect                    # 深色模式检测(Windows/Linux)，macOS不要安装这个包
+pip install darkdetect[macos-listener]    # 深色模式检测(macOS)，Windows/Linux不要安装这个包
 ```
+
+> **注意**：
+> - 支持Windows 10 1607或更新版本
+> - 支持macOS Mojave 10.14或更新版本呢
+> - 支持带深色GTK主题的Linux系统（不限发行版本）
 
 ## 如何使用
 
