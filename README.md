@@ -34,7 +34,10 @@
 需要Python3.7或更高版本，支持所有操作系统
 
 ```bash
-pip install pyside6
+pip install pyqt6         # GUI支持
+pip install qtawesome     # FontAwesome支持
+pip install qt_material   # 一个PyQt主题
+pip install darkdetect    # 深色模式检测
 ```
 
 ## 如何使用
